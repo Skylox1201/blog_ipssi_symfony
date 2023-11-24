@@ -1,0 +1,31 @@
+<div class="container">
+    <header class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom">
+
+      <ul class="nav col-12 col-md-auto mb-2 justify-content-center mb-md-0">
+        <li><a href="{{path('app_article')}}" class="nav-link px-2 link-secondary">{{'Home'|trans}}</a></li>
+      </ul>
+
+      <div class="col-md-3 text-end">
+        {% if app.user %}
+        <div class="dropdown text-end">
+          <a href="#" class="d-block link-body-emphasis text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            {{app.user.username}}
+          </a>
+          <ul class="dropdown-menu text-small" style="">
+            {% if is_granted('ROLE_ADMIN') %}
+                <li><a class="dropdown-item" href="{{path('app_article_list')}}">{{'MyArticles'|trans}}</a></li>
+                <li><a class="dropdown-item" href="{{path('app_article_create')}}">{{'NewArticle'|trans}}</a></li>
+                <li><div class="dropdown-divider"></div></li>
+                <li><a class="dropdown-item" href="{{path('app_category')}}">{{'Categories'|trans}}</a></li>
+            {% endif %}
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{{path('app_logout')}}">Sign out</a></li>
+          </ul>
+        </div>
+        {% else %}
+            <a href="{{ path('app_login') }}" class="btn btn-outline-primary me-2">{{'Login'|trans}}</a>
+            <a href="{{ path('app_register') }}" class="btn btn-primary">{{'SignUp'|trans}}</a>
+        {% endif %}
+      </div>
+    </header>
+  </div>

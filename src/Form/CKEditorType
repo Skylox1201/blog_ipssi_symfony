@@ -1,0 +1,26 @@
+<?php
+
+namespace App\Form\Type;
+
+use FOS\CKEditorBundle\Form\Type\CKEditorType;
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\FormBuilderInterface;
+
+class PostEditType extends AbstractType {
+    public function buildForm(FormBuilderInterface $builder, array $options) {
+        $builder
+            ->add('title', TextType::class, [
+                'label' => 'Titre',
+            ])
+            ->add('content', CKEditorType::class, array(
+                'config' => array(
+                    'uiColor' => '#ffffff',
+                ),
+            ))
+            ->add('submit', SubmitType::class, [
+                'label' => 'Envoyer',
+            ]);
+    }
+}
+
+?>

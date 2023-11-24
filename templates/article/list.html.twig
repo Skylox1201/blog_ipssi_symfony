@@ -1,0 +1,187 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{parent()}} - {{'MyArticles'|trans}}{% endblock %}
+
+{% block content %}
+    <main class="container">
+        <h1>{{'MyArticles'|trans}}</h1>
+        <hr>
+        {% if categories is empty %}
+            <div class="alert alert-info" role="alert">
+                {{'NoCategoryFound'|trans}}
+            </div>
+            <div class="row mb-3">
+                <div class="col-12">
+                    <a href="{{path('app_category_create')}}" class="btn btn-success">{{'NewCategory'|trans}}</a>
+                </div>
+            </div>
+        {% else %}
+            <div class="row mb-3">
+                <div class="col-12">
+                    <a href="{{path('app_article_create')}}" class="btn btn-success">{{'NewArticle'|trans}}</a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6 mb-3">
+                    <label for="categorySelect" class="form-label">{{'SelectCategory'|trans}}</label>
+                    <select id="categorySelect" class="form-select" aria-label="Category Select">
+                        <option selected value="all">{{'AllArticles'|trans}}</option>
+                        {% for category in categories %}
+                            <option value="{{category.id}}">{{category.title}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-6 mb-3">
+                    <label for="stateArticle" class="form-label">{{'SelectState'|trans}}</label>
+                    <select id="stateArticle" class="form-select" aria-label="Article State Select">
+                        <option selected value="all">{{'AllArticles'|trans}}</option>
+                        <option value="public">{{'Published'|trans}}</option>
+                        <option value="draft">{{'Draft'|trans}}</option>
+                    </select>
+                </div>
+            </div>
+            <hr>
+            {% if articles is empty %}
+                <div class="alert alert-info" role="alert">
+                    {{'NoArticlesFound'|trans}}
+                </div>
+            {% else %}
+                <div class="row row-cols-1 row-cols-md-2 g-4 mb-3">
+                    {% for  article in articles %}
+                        {% include 'include/article_card.html.twig' with {'article': article} %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endif %}
+    </main>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        function stripHtml(htmlString) {
+            var tempDivElement = document.createElement("div");
+            tempDivElement.innerHTML = htmlString;
+            return tempDivElement.textContent || tempDivElement.innerText || "";
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+        var categorySelect = document.getElementById('categorySelect');
+        categorySelect.addEventListener('change', function() {
+            Array.from(document.getElementsByClassName('loaded-card')).forEach(function(element) {
+                element.style.display = 'none';
+            });
+            Array.from(document.getElementsByClassName('loading-card')).forEach(function(element) {
+                element.style.display = 'block';
+            });
+            
+            var categoryId = this.value;
+
+            if (stateArticle.value === 'all'){
+                fetch('/article/all/category/' + categoryId)
+                    .then(response => response.json())
+                    .then(articles => {
+                        updateArticles(articles);
+                    });
+            } else if (stateArticle.value === 'draft') {
+                fetch('/article/draft/category/' + categoryId)
+                    .then(response => response.json())
+                    .then(articles => {
+                        updateArticles(articles);
+                    });
+            } else if (stateArticle.value === 'public') {
+                fetch('/article/public/category/' + categoryId)
+                    .then(response => response.json())
+                    .then(articles => {
+                        updateArticles(articles);
+                    });
+            }
+        });
+
+        var stateArticle = document.getElementById('stateArticle');
+        stateArticle.addEventListener('change', function() {
+            Array.from(document.getElementsByClassName('loaded-card')).forEach(function(element) {
+                element.style.display = 'none';
+            });
+            Array.from(document.getElementsByClassName('loading-card')).forEach(function(element) {
+                element.style.display = 'block';
+            });
+
+            var state = this.value;
+
+            if (state === 'all'){
+                fetch('/article/all/category/' + categorySelect.value)
+                    .then(response => response.json())
+                    .then(articles => {
+                        updateArticles(articles);
+                    });
+            } else if (state === 'draft') {
+                fetch('/article/draft/category/' + categorySelect.value)
+                    .then(response => response.json())
+                    .then(articles => {
+                        updateArticles(articles);
+                    });
+            } else if (state === 'public') {
+                fetch('/article/public/category/' + categorySelect.value)
+                    .then(response => response.json())
+                    .then(articles => {
+                        updateArticles(articles);
+                    });
+            }
+        });
+
+        function updateArticles(articles) {
+            var articlesContainer = document.querySelector('.row-cols-1');
+            articlesContainer.innerHTML = '';
+            
+            if (articles.length === 0) {
+                articlesContainer.innerHTML = `
+                    <div class="alert alert-info" role="alert">
+                        {{'NoArticlesFound'|trans}}
+                    </div>`;
+            } else {
+                articles.forEach(article => {
+                    console.log(article);
+                    var cleanContent = stripHtml(article.content).substring(0, 100);
+                    var cleanPublicationDate = new Date(article.publicationDate).toLocaleDateString();
+                    articlesContainer.innerHTML += `
+                        <div class="loaded-card col h-100">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">${article.title}</h5>
+                                    <p class="card-text">${cleanContent}...</p>
+                                    <a href="/article/show/${article.id}" class="btn btn-primary">{{ 'ReadMore'|trans }}</a>
+                                    {% if is_granted('ROLE_ADMIN') %}
+                                        <a href="/article/edit/${article.id}" class="btn btn-warning">{{ 'Edit'|trans }}</a>
+                                        <a href="/article/delete/${article.id}" class="btn btn-danger">{{ 'Delete'|trans }}</a>
+                                    {% endif %}
+                                </div>
+                                <div class="card-footer text-body-secondary">
+                                    <p class="card-text"><small class="text-muted">{{ 'PublishedOn'|trans }} ${cleanPublicationDate} {{ 'by'|trans }} ${article.author.username}</small></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="loading-card col" style="display:none;">
+                            <div class="card" aria-hidden="true">
+                                <div class="card-body">
+                                    <h5 class="card-title placeholder-wave">
+                                        <span class="placeholder col-6"></span>
+                                    </h5>
+                                    <p class="card-text placeholder-wave">
+                                        <span class="placeholder col-7"></span>
+                                        <span class="placeholder col-4"></span>
+                                        <span class="placeholder col-4"></span>
+                                        <span class="placeholder col-6"></span>
+                                        <span class="placeholder col-8"></span>
+                                    </p>
+                                </div>
+                                <div class="card-footer text-body-secondary">
+                                    <p class="card-text"><small class="text-muted placeholder col-6"></small></p>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+            }
+        }
+    });
+    </script>
+{% endblock %}

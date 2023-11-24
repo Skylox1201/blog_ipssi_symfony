@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{parent()}} - {{'Categories'|trans}}{% endblock %}
+
+{% block content %}
+{% if categories|length == 0 %}
+    <div class="alert alert-info" role="alert">
+        {{'NoCategoryFound'|trans}}
+    </div>
+{% endif %}
+    <a href="{{path('app_category_create')}}" class="btn btn-success mb-3">{{"NewCategory"|trans}}</a>
+{% if categories|length > 0 %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>{{"Name"|trans}}</th>
+                <th>{{"Actions"|trans}}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for category in categories %}
+                <tr>
+                    <td>{{category.title}}</td>
+                    <td>
+                        <a class="btn btn-warning" href="{{path('app_category_edit', {'id': category.id})}}">{{"Edit"|trans}}</a>
+                        <a class="btn btn-danger" href="{{path('app_category_delete', {'id': category.id})}}">{{"Delete"|trans}}</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endif %}
+{% endblock %}

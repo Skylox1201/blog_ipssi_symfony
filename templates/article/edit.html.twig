@@ -1,0 +1,56 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{parent()}} - {{'WriteArticle'|trans}}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    {{ form_start(form) }}
+        {% include 'include/article_form.html.twig' with {'form': form} %}
+    {{ form_end(form) }}
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{asset('ckeditor5/ckeditor.js')}}"></script>
+    {# Ckeditor5 #}
+    <script>
+        ClassicEditor
+            .create( document.querySelector( '#editor' ) )
+            .catch( error => {
+                console.error( error );
+            } )
+            .then( editor => {
+                editor.setData(document.querySelector( '#article_content' ).value);
+                document.querySelector( 'form' ).addEventListener( 'submit', (e) => {
+                    e.preventDefault();
+                    document.querySelector( '#article_content' ).value = editor.getData();
+                    document.querySelector( 'form' ).submit();
+            })
+            });
+    </script>
+
+    {# Toggle buttons #}
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var stateSelect = document.getElementById('article_state');
+        var publishButton = document.getElementById('publish_button');
+        var draftButton = document.getElementById('draft_button');
+
+        function toggleButtons() {
+            if (stateSelect.value === 'draft') {
+                publishButton.style.display = 'none';
+                draftButton.style.display = 'block';
+            } else if (stateSelect.value === 'public') {
+                publishButton.style.display = 'block';
+                draftButton.style.display = 'none';
+            }
+        }
+
+        // Appeler toggleButtons au chargement pour le bon état initial
+        toggleButtons();
+
+        // Ajouter un écouteur d'événements pour les changements de valeur
+        stateSelect.addEventListener('change', toggleButtons);
+    });
+</script>
+{% endblock %}
