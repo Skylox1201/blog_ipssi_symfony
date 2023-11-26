@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class CommentController extends AbstractController
 {
@@ -17,7 +18,8 @@ class CommentController extends AbstractController
         $comment = $em->getRepository(Comment::class)->find($id);
         $comment->setState('desactivated');
         $em->flush();
-        $this->addFlash('success', 'Comment desactivated!');
+        $message = $this->translator->trans('CommentDesactivated');
+        $this->addFlash('success', $message);
         return $this->redirectToRoute('app_article_show', ['id' => $comment->getArticle()->getId()]);
     }
 
@@ -27,7 +29,8 @@ class CommentController extends AbstractController
         $comment = $em->getRepository(Comment::class)->find($id);
         $comment->setState('active');
         $em->flush();
-        $this->addFlash('success', 'Comment activated!');
+        $message = $this->translator->trans('CommentActivated');
+        $this->addFlash('success', $message);
         return $this->redirectToRoute('app_article_show', ['id' => $comment->getArticle()->getId()]);
     }
 }

@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class ArticleController extends AbstractController
 {
@@ -63,7 +64,8 @@ class ArticleController extends AbstractController
             $em->persist($article);
             $em->flush();
 
-            $this->addFlash('success', 'Article created!');
+            $message = $this->translator->trans('ArticleCreated');
+            $this->addFlash('success', $message);
 
             if ($article->getState() == 'public')
                 return $this->redirectToRoute('app_article');
@@ -82,7 +84,8 @@ class ArticleController extends AbstractController
     {
         $article = $em->getRepository(Article::class)->find($id);
         if (!$article) {
-            $this->addFlash('danger', 'This article does not exist.');
+            $message = $this->translator->trans('ArticleDoesNotExist');
+            $this->addFlash('danger', $message);
             return $this->redirectToRoute('app_article_list');
         }
 
@@ -94,7 +97,8 @@ class ArticleController extends AbstractController
                 $article->setPublicationDate(new \DateTimeImmutable());
             }
             $em->flush();
-            $this->addFlash('success', 'Article updated!');
+            $message = $this->translator->trans('ArticleUpdated');
+            $this->addFlash('success', $message);
             return $this->redirectToRoute('app_article_edit', ['id' => $article->getId()]);
         } else {
             return $this->render('article/edit.html.twig', [
@@ -108,7 +112,8 @@ class ArticleController extends AbstractController
     {
         $article = $em->getRepository(Article::class)->find($id);
         if (!$article || $article->getState() == 'draft') {
-            $this->addFlash('danger', 'This article does not exist.');
+            $message = $this->translator->trans('ArticleDoesNotExist');
+            $this->addFlash('danger', $message);
             return $this->redirectToRoute('app_article_list');
         }
 
@@ -128,7 +133,8 @@ class ArticleController extends AbstractController
             $em->persist($comment);
             $em->flush();
             
-            $this->addFlash('success', 'Comment created!');
+            $message = $this->translator->trans('CommentCreated');
+            $this->addFlash('success', $message);
             return $this->redirectToRoute('app_article_show', ['id' => $article->getId()]);
         }
 
@@ -146,13 +152,15 @@ class ArticleController extends AbstractController
     {
         $article = $em->getRepository(Article::class)->find($id);
         if (!$article) {
-            $this->addFlash('danger', 'This article does not exist.');
+            $message = $this->translator->trans('ArticleDoesNotExist');
+            $this->addFlash('danger', $message);
             return $this->redirectToRoute('app_article_list');
         }
 
         $em->remove($article);
         $em->flush();
-        $this->addFlash('success', 'Article deleted!');
+        $message = this->translator->trans('ArticleDeleted');
+        $this->addFlash('success', $message);
         return $this->redirectToRoute('app_article_list');
     }
 

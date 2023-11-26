@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class CategoryController extends AbstractController
 {
@@ -29,7 +30,8 @@ class CategoryController extends AbstractController
     {
         $category = $em->getRepository(Category::class)->find($id);
         if (!$category) {
-            $this->addFlash('error', 'The category does not exist.');
+            $message = $this->translator->trans('CommentDoesNotExist');
+            $this->addFlash('danger', $message);
             return $this->redirectToRoute('app_category');
         }
 
@@ -38,7 +40,8 @@ class CategoryController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
-            $this->addFlash('success', 'Category updated!');
+            $message = $this->translator->trans('CategoryUpdated');
+            $this->addFlash('success', $message);
             return $this->redirectToRoute('app_category', ['id' => $category->getId()]);
         }
 
@@ -60,7 +63,8 @@ class CategoryController extends AbstractController
             $em->persist($category);
             $em->flush();
 
-            $this->addFlash('success', 'Category created!');
+            $message = $this->translator->trans('CategoryCreated');
+            $this->addFlash('success', $message);
 
             return $this->redirectToRoute('app_category');
         }
@@ -78,7 +82,8 @@ class CategoryController extends AbstractController
         $em->remove($category);
         $em->flush();
 
-        $this->addFlash('success', 'Category deleted!');
+        $message = $this->translator->trans('CategoryDeleted');
+        $this->addFlash('success', $message);
 
         return $this->redirectToRoute('app_category');
     }
