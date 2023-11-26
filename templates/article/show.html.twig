@@ -28,6 +28,41 @@
                     <a href="{{ path('app_article_delete', {id: article.id}) }}" class="btn btn-danger">{{'Delete'|trans}}</a>
                 {% endif %}
             </div>
+            <hr>
+            <div class="row">
+                <div class="col-12">
+                    {{ form_start(commentForm) }}
+                        {{ form_label(commentForm.content)}}
+                        {{ form_widget(commentForm.content)}}
+                        <button type="submit" class="btn btn-primary my-3">{{'Send'|trans}}</button>
+                    {{ form_end(commentForm) }}
+                </div>
+            </div>
+            <h2>Comments</h2>
+            {% if comments is not empty %}
+                {% for comment in comments %}
+                    <hr>
+                    <div class="row">
+                        <div class="col-8">
+                            <small style="text-decoration: underline;">{{ comment.author.username }} {{'on'|trans}} {{ comment.publicationDate|format_date('short', locale='fr') }} à {{ comment.publicationDate|format_time('short', locale='fr') }}</small>
+                        </div>
+                        <div class="col-4 text-right">
+                            {% if is_granted('ROLE_ADMIN') %}
+                                {% if comment.state == "active" %}
+                                    <a href="{{ path('app_comment_desactive', {id: comment.id}) }}" class="btn btn-danger btn-sm">{{'Desactivate'|trans}}</a>
+                                {% else %}
+                                    <a href="{{ path('app_comment_active', {id: comment.id}) }}" class="btn btn-success btn-sm">{{'Activate'|trans}}</a>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                        <p>{{ comment.content }}</p>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-info">
+                    {{'NoCommentsYet'|trans}}
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>

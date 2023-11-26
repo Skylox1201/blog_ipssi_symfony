@@ -4,7 +4,9 @@ namespace App\Controller;
 
 use App\Entity\Article;
 use App\Form\ArticleType;
+use App\Form\CommentType;
 use App\Entity\Category;
+use App\Entity\Comment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -12,10 +14,19 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
 class ArticleController extends AbstractController
 {
+
+    private $authorizationChecker;
+
+    public function __construct(AuthorizationCheckerInterface $authorizationChecker)
+    {
+        $this->authorizationChecker = $authorizationChecker;
+    }
+
     #[Route('/', name: 'app_article')]
     public function index(EntityManagerInterface $em): Response
     {
@@ -93,7 +104,7 @@ class ArticleController extends AbstractController
     }
 
     #[Route('/article/show/{id}', name: 'app_article_show')]
-    public function show(EntityManagerInterface $em, $id): Response
+    public function show(EntityManagerInterface $em, Request $request, $id): Response
     {
         $article = $em->getRepository(Article::class)->find($id);
         if (!$article || $article->getState() == 'draft') {
@@ -101,8 +112,30 @@ class ArticleController extends AbstractController
             return $this->redirectToRoute('app_article_list');
         }
 
+        if ($this->authorizationChecker->isGranted('ROLE_ADMIN')) {
+            $comments = $em->getRepository(Comment::class)->findBy(['article' => $article]);
+        } else {
+            $comments = $em->getRepository(Comment::class)->findBy(['article' => $article, 'state' => 'active']);
+        }
+        $commentForm = $this->createForm(CommentType::class);
+        $commentForm->handleRequest($request);
+
+        if ($commentForm->isSubmitted() && $commentForm->isValid()) {
+            $comment = $commentForm->getData();
+            $comment->setArticle($article);
+            $comment->setAuthor($this->getUser());
+
+            $em->persist($comment);
+            $em->flush();
+            
+            $this->addFlash('success', 'Comment created!');
+            return $this->redirectToRoute('app_article_show', ['id' => $article->getId()]);
+        }
+
         return $this->render('article/show.html.twig', [
             'article' => $article,
+            'commentForm' => $commentForm->createView(),
+            'comments' => $comments
         ]);
     }
 
